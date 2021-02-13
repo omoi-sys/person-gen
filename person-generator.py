@@ -5,6 +5,7 @@ import sys
 num_to_generate = 0
 input_argument = ""
 state_id = 0
+address_list = []
 
 # name of inputfile in case of input csv file passed as an argument when initiating program
 if (len(sys.argv) > 1):
@@ -50,7 +51,12 @@ data_lengths = {
 
 def generate():
     global data_lengths
+    global address_list
+    global display_list
     line_nums = []
+
+    # reset list first after each call to generate()
+    address_list = []
 
     random.seed()
 
@@ -81,17 +87,20 @@ def generate():
     file.close()
 
     for i in range(0, len(address_lines)):
-        print(address_lines[i].split(','))
+        #print(address_lines[i].split(','))
         new_one = address_lines[i].split(',')
-        print(new_one[2] + " " + new_one[3] + " " + new_one[4] + ", " + new_one[5] + " " + new_one[8])
+        address_list.append(new_one[2] + " " + new_one[3] + " " + new_one[4] + ", " + new_one[5] + " " + new_one[8])
 
-    print("Done")
+    for i in range(0, num_to_generate):
+        display_list.insert(i, address_list[i])
 
 def retrieve():
     global state_id
     global num_to_generate
+    global display_list
     state_id = int(listbox.curselection()[0])
     num_to_generate = int(user_num.get())
+    display_list.delete(0, 'end')
     generate()
 
 window = Tk()
@@ -102,6 +111,7 @@ greeting = Label(text="Welcome to Person Generator\nPlease select which state yo
 greeting.pack(side = 'top')
 
 listbox = Listbox(window, width='80', height='13')
+display_list = Listbox(window, width='80', height='13')
 
 for i in range(0, 13):
     listbox.insert(i, state_list[i])
@@ -112,6 +122,7 @@ num_ask.pack()
 user_num = Entry(window, width = 20)
 user_num.insert(0, '')
 user_num.pack(padx = 5, pady = 5)
+display_list.pack()
 
 bttn = Button(window, text = "Generate", command = retrieve)
 bttn.pack(side = 'bottom')
