@@ -1,3 +1,9 @@
+'''
+Name: Abraham Serrato Meza
+Project: Person Generator proof-of-concept
+Class: CS361 Winter 2021: Software Engineering I
+'''
+
 from tkinter import *
 import random
 import sys
