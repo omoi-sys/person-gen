@@ -7,13 +7,11 @@ input_argument = ""
 state_id = 0
 address_list = []
 
-# name of inputfile in case of input csv file passed as an argument when initiating program
-if (len(sys.argv) > 1):
-    input_argument = sys.argv[1]
-
 state_list = ['Alaska', 'Arizona', 'California', 'Colorado', 'Hawaii', 
             'Idaho', 'Montana', 'New Mexico', 'Nevada', 'Oregon', 'Utah', 
             'Washington', 'Wyoming']
+states_short = ['ak', 'az', 'ca', 'co', 'hi', 'id', 'mt', 
+                'nm', 'nv', 'or', 'ut', 'wa', 'wy']
 
 state_filename_dict = {
     'Alaska': 'ak', 
@@ -49,10 +47,10 @@ data_lengths = {
     "wy": 368400
 }
 
+
 def generate():
     global data_lengths
     global address_list
-    global display_list
     line_nums = []
 
     # reset list first after each call to generate()
@@ -89,10 +87,28 @@ def generate():
     for i in range(0, len(address_lines)):
         #print(address_lines[i].split(','))
         new_one = address_lines[i].split(',')
-        address_list.append(new_one[2] + " " + new_one[3] + " " + new_one[4] + ", " + new_one[5] + " " + new_one[8])
+        address_list.append(new_one[2] + " " + new_one[3] + " " + new_one[4] + new_one[5] + " " + new_one[8])
 
-    for i in range(0, num_to_generate):
-        display_list.insert(i, address_list[i])
+    output = open('output.csv', 'w')
+    output.write('input_state, input_number_to_generate, output_content_type, output_content_value\n')
+    for i in range(0, len(address_list)):
+        output.write(state_list[state_id] + ',' + str(num_to_generate) + ',' + 'street address,' + address_list[i] + '\n')
+
+def skip_GUI():
+    global num_to_generate
+    global state_id
+    lines = []
+    input_file = open(input_argument, 'r')
+    for i in input_file:
+        lines.append(i)
+
+    vals = lines[1].split(',')
+    num_to_generate = int(vals[1])
+    for i in range(0, 13):
+        if state_list[i] == vals[0] or states_short[i] == vals[0] or states_short[i].upper == vals[0]:
+            state_id = i
+
+    generate()
 
 def retrieve():
     global state_id
@@ -102,28 +118,37 @@ def retrieve():
     num_to_generate = int(user_num.get())
     display_list.delete(0, 'end')
     generate()
+    for i in range(0, num_to_generate):
+        display_list.insert(i, address_list[i])
 
-window = Tk()
-window.geometry("600x600")
-frame = Frame(window)
-frame.pack()
-greeting = Label(text="Welcome to Person Generator\nPlease select which state you would like to generate addresses for.")
-greeting.pack(side = 'top')
 
-listbox = Listbox(window, width='80', height='13')
-display_list = Listbox(window, width='80', height='13')
+if __name__ == '__main__':
+    # name of inputfile in case of input csv file passed as an argument when initiating program
+    if (len(sys.argv) > 1):
+        input_argument = sys.argv[1]
+        skip_GUI()
+    else:
+        window = Tk()
+        window.geometry("600x600")
+        frame = Frame(window)
+        frame.pack()
+        greeting = Label(text="Welcome to Person Generator\nPlease select which state you would like to generate addresses for.")
+        greeting.pack(side = 'top')
 
-for i in range(0, 13):
-    listbox.insert(i, state_list[i])
+        listbox = Listbox(window, width='80', height='13')
+        display_list = Listbox(window, width='80', height='13')
 
-listbox.pack()
-num_ask = Label(text='Number of addresses to generate (max 250)')
-num_ask.pack()
-user_num = Entry(window, width = 20)
-user_num.insert(0, '')
-user_num.pack(padx = 5, pady = 5)
-display_list.pack()
+        for i in range(0, 13):
+            listbox.insert(i, state_list[i])
 
-bttn = Button(window, text = "Generate", command = retrieve)
-bttn.pack(side = 'bottom')
-window.mainloop()
+        listbox.pack()
+        num_ask = Label(text='Number of addresses to generate (max 250)')
+        num_ask.pack()
+        user_num = Entry(window, width = 20)
+        user_num.insert(0, '')
+        user_num.pack(padx = 5, pady = 5)
+        display_list.pack()
+
+        bttn = Button(window, text = "Generate", command = retrieve)
+        bttn.pack(side = 'bottom')
+        window.mainloop()
