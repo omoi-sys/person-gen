@@ -110,6 +110,7 @@ def generate():
     # generated numbers in line_nums list. This should help with 
     # running time and memory usage as we won't be saving ALL the 
     # lines in memory using a list, but only the ones we need.
+    # Method for enumerating lines adapted from: https://stackoverflow.com/questions/2081836/reading-specific-lines-only
     for i, line in enumerate(file):
         if i == line_nums[0]: # if the generated number matches the line number
             # save the line as is
@@ -230,7 +231,9 @@ if __name__ == '__main__':
     # If no arguments are passed, then pop up a GUI from which a user can
     # manually request addresses.
     else:
-        # Create the GUI window and greet user
+        # Create the GUI window and greet user. I used the following tutorial
+        # for learning how to make a GUI with Tkinter: https://coderslegacy.com/python/python-gui/python-tkinter-list-box/
+        # and https://realpython.com/python-gui-tkinter/
         window = Tk()
         window.geometry("600x600")
         message = "Welcome to Person Generator\nPlease select which state you would like to generate addresses for.\n" + \
