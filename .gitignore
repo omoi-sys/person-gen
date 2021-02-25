@@ -1,3 +1,4 @@
 # ignore all CSV files
 *.csv
 addresses/
+content-generator.py
