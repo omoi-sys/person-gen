@@ -7,11 +7,14 @@ Class: CS361 Winter 2021: Software Engineering I
 from tkinter import *
 import random
 import sys
+import os
+from time import sleep
 
 num_to_generate = 0     # Number of addresses to generate
 input_argument = ""     # Name of input file passed, stays empty if none is
 state_id = 0            # Position in list for state selected
 address_list = []       # List of addresses that are generated
+content_list = []
 
 # Global list of state names in long form. This list have multiple
 # uses including in the GUI list to choose from and in the non-GUI
@@ -74,6 +77,7 @@ data_lengths = {
 ##############################################################################
 def generate():
     global address_list # list of addresses to save the addresses to
+    global content_list # list of content from the content generator
     line_nums = []      # line positions which will be used to select lines
 
     # reset list first after each call to generate()
@@ -141,12 +145,28 @@ def generate():
             address_list.append(current_addr[2] + " " + current_addr[3] + " " + current_addr[4] + " " + current_addr[5] + " " + current_addr[8])
 
     # create output.csv file and save addresses to it
-    output = open('output.csv', 'w')
+    output = open('pg_output.csv', 'w')
     # Write the headers into the file first
     output.write('input_state, input_number_to_generate, output_content_type, output_content_value\n')
     # Write the data into output file
     for i in range(0, len(address_list)):
         output.write(state_list[state_id] + ',' + str(num_to_generate) + ',' + 'street address,' + address_list[i] + '\n')
+
+    # make input file for Content Generator
+    c_gen_file = open('cg_input.csv', 'w')
+    c_gen_file.write('input_keywords\n')
+    c_gen_file.write('Alaska;climate')
+    c_gen_file.close()
+
+    # Start the Content Generator
+    os.system("python3 content-generator.py cg_input.csv")
+    sleep(5) # wait a bit for the content generator to do its thing
+    
+    # read data that Content Generator created into a list
+    cgen_output = open('output.csv', 'r')
+    for line in cgen_output:
+        content_list.append(line)
+    cgen_output.close()
 
 
 ##############################################################################
@@ -200,6 +220,7 @@ def get_addr_list():
     global state_id
     global num_to_generate
     global display_list
+    global content_data
 
     # get the position of the state selected by user on GUI
     state_id = int(listbox.curselection()[0])
@@ -219,6 +240,10 @@ def get_addr_list():
     for i in range(0, num_to_generate):
         display_list.insert(i, address_list[i])
 
+    # Take in data that was read from Content Generator
+    for i in range(0, len(content_list)):
+        content_data.insert(i, content_list[i])
+
 
 if __name__ == '__main__':
     # If a file was passed at the same time as the user started this program,
@@ -235,7 +260,7 @@ if __name__ == '__main__':
         # for learning how to make a GUI with Tkinter: https://coderslegacy.com/python/python-gui/python-tkinter-list-box/
         # and https://realpython.com/python-gui-tkinter/
         window = Tk()
-        window.geometry("600x600")
+        window.geometry("600x900")
         message = "Welcome to Person Generator\nPlease select which state you would like to generate addresses for.\n" + \
                 "Please make sure the state is highlighted otherwise nothing will be generated.\n"
         greeting = Label(text=message)
@@ -246,6 +271,8 @@ if __name__ == '__main__':
         listbox = Listbox(window, width='70', height='13')
         # List of addresses to be displayed
         display_list = Listbox(window, width='70', height='15')
+        # List of data from Content Generator
+        content_data = Listbox(window, width='70', height='15')
 
         # Insert states from state_list into the first listbox container
         for i in range(0, 13):
@@ -262,6 +289,9 @@ if __name__ == '__main__':
         # Create area with list of addresses. This will be empty
         # before get_addr_list() is called by pressing Generate button
         display_list.pack()
+
+        # Generate on GUI
+        content_data.pack()
 
         # Create button to press that calls get_addr_list() function
         bttn = Button(window, text = "Generate", command = get_addr_list)
