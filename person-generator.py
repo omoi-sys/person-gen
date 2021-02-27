@@ -155,7 +155,7 @@ def generate():
     # make input file for Content Generator
     c_gen_file = open('cg_input.csv', 'w')
     c_gen_file.write('input_keywords\n')
-    c_gen_file.write('Alaska;climate')
+    c_gen_file.write(state_list[state_id] + ';climate')
     c_gen_file.close()
 
     # Start the Content Generator
@@ -242,7 +242,14 @@ def get_addr_list():
         display_list.insert(i, address_list[i])
 
     # Take in data that was read from Content Generator
-    content_info.set('Climate in ' + content_list[1][0] + '\n' + content_list[1][1])
+    temp_cont = ''
+    for i in range(len(content_list[1][1])):
+        if (i % 78 == 0):
+            temp_cont += '\n'
+        else:
+            temp_cont += content_list[1][1][i]
+
+    content_info.set('Climate in ' + content_list[1][0] + '\n' + temp_cont)
 
 
 if __name__ == '__main__':
@@ -274,7 +281,7 @@ if __name__ == '__main__':
         # Data from Content Generator
         content_info = StringVar()
         content_info.set('')
-        content_data = Label(textvariable=content_info)
+        content_data = Label(window, textvariable=content_info, width='70', height='15')
 
         # Insert states from state_list into the first listbox container
         for i in range(0, 13):
