@@ -222,6 +222,7 @@ def get_addr_list():
     global num_to_generate
     global display_list
     global content_info # Data that is displayed about the state climate
+    global content_data
     global window
 
     # get the position of the state selected by user on GUI
@@ -245,12 +246,16 @@ def get_addr_list():
     # Take in data that was read from Content Generator
     temp_cont = ''
     for i in range(len(content_list[1][1])):
-        if (i % 78 == 0):
+        if (i % 70 == 0):
             temp_cont += '\n'
         else:
             temp_cont += content_list[1][1][i]
 
     content_info.set('Climate in ' + content_list[1][0] + '\n' + temp_cont)
+    # check to see if content displayed is empty before insertng it to GUI
+    if content_info.get() != ' ':
+        content_data.delete('1.0', 'end')
+    content_data.insert(INSERT, content_info.get())
 
 
 if __name__ == '__main__':
@@ -280,9 +285,14 @@ if __name__ == '__main__':
         # List of addresses to be displayed
         display_list = Listbox(window, width='70', height='15')
         # Data from Content Generator
+        CFrame = Frame(window)
         content_info = StringVar()
-        content_info.set('')
-        content_data = Label(window, textvariable=content_info, width='70', height='15')
+        content_info.set(' ')
+        content_data = Text(CFrame, width='70', height='15')
+        content_data.insert(INSERT, content_info.get())
+
+        # Add scrollbar to Content data
+        scroll = Scrollbar(CFrame, orient=VERTICAL, command=content_data.yview)
 
         # Insert states from state_list into the first listbox container
         for i in range(0, 13):
@@ -295,15 +305,18 @@ if __name__ == '__main__':
         user_num = Entry(window, width = 20)
         user_num.insert(0, '') # Make sure entry area is empty
         user_num.pack(padx = 5, pady = 5)
-        
-        # Create area with list of addresses. This will be empty
-        # before get_addr_list() is called by pressing Generate button
-        display_list.pack()
 
         # Create button to press that calls get_addr_list() function
         bttn = Button(window, text = "Generate", command = get_addr_list)
-        bttn.pack(side = 'bottom') # Display button at the bottom
-        content_data.pack()
+        bttn.pack(side = 'top') # Display button at the bottom
+
+        # Create area with list of addresses. This will be empty
+        # before get_addr_list() is called by pressing Generate button
+        display_list.pack(side = 'top')
+        content_data.pack(side=LEFT)
+        content_data.config(yscrollcommand=scroll.set)
+        scroll.pack(side=RIGHT)
+        CFrame.pack()
 
         # Make GUI
         window.mainloop()
