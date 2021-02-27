@@ -164,6 +164,7 @@ def generate():
     
     # read data that Content Generator created into a list
     cgen_output = open('output.csv', 'r')
+    content_list = []
     for line in cgen_output:
         content_list.append(line.split(';'))
     cgen_output.close()
