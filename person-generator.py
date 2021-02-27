@@ -160,12 +160,12 @@ def generate():
 
     # Start the Content Generator
     os.system("python3 content-generator.py cg_input.csv")
-    sleep(5) # wait a bit for the content generator to do its thing
+    sleep(3) # wait a bit for the content generator to do its thing
     
     # read data that Content Generator created into a list
     cgen_output = open('output.csv', 'r')
     for line in cgen_output:
-        content_list.append(line)
+        content_list.append(line.split(';'))
     cgen_output.close()
 
 
@@ -220,7 +220,8 @@ def get_addr_list():
     global state_id
     global num_to_generate
     global display_list
-    global content_data
+    global content_info # Data that is displayed about the state climate
+    global window
 
     # get the position of the state selected by user on GUI
     state_id = int(listbox.curselection()[0])
@@ -241,8 +242,7 @@ def get_addr_list():
         display_list.insert(i, address_list[i])
 
     # Take in data that was read from Content Generator
-    for i in range(0, len(content_list)):
-        content_data.insert(i, content_list[i])
+    content_info.set('Climate in ' + content_list[1][0] + '\n' + content_list[1][1])
 
 
 if __name__ == '__main__':
@@ -271,8 +271,10 @@ if __name__ == '__main__':
         listbox = Listbox(window, width='70', height='13')
         # List of addresses to be displayed
         display_list = Listbox(window, width='70', height='15')
-        # List of data from Content Generator
-        content_data = Listbox(window, width='70', height='15')
+        # Data from Content Generator
+        content_info = StringVar()
+        content_info.set('')
+        content_data = Label(textvariable=content_info)
 
         # Insert states from state_list into the first listbox container
         for i in range(0, 13):
@@ -290,12 +292,10 @@ if __name__ == '__main__':
         # before get_addr_list() is called by pressing Generate button
         display_list.pack()
 
-        # Generate on GUI
-        content_data.pack()
-
         # Create button to press that calls get_addr_list() function
         bttn = Button(window, text = "Generate", command = get_addr_list)
         bttn.pack(side = 'bottom') # Display button at the bottom
+        content_data.pack()
 
         # Make GUI
         window.mainloop()
