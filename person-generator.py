@@ -77,7 +77,6 @@ data_lengths = {
 ##############################################################################
 def generate():
     global address_list # list of addresses to save the addresses to
-    global content_list # list of content from the content generator
     line_nums = []      # line positions which will be used to select lines
 
     # reset list first after each call to generate()
@@ -152,23 +151,6 @@ def generate():
     for i in range(0, len(address_list)):
         output.write(state_list[state_id] + ',' + str(num_to_generate) + ',' + 'street address,' + address_list[i] + '\n')
 
-    # make input file for Content Generator
-    c_gen_file = open('cg_input.csv', 'w')
-    c_gen_file.write('input_keywords\n')
-    c_gen_file.write(state_list[state_id] + ';climate')
-    c_gen_file.close()
-
-    # Start the Content Generator
-    os.system("python3 content-generator.py cg_input.csv")
-    sleep(3) # wait a bit for the content generator to do its thing
-    
-    # read data that Content Generator created into a list
-    cgen_output = open('output.csv', 'r')
-    content_list = []
-    for line in cgen_output:
-        content_list.append(line.split(';'))
-    cgen_output.close()
-
 
 ##############################################################################
 # Function: skip_GUI()
@@ -242,6 +224,23 @@ def get_addr_list():
     # by GUI to display to user.
     for i in range(0, num_to_generate):
         display_list.insert(i, address_list[i])
+
+    # make input file for Content Generator
+    c_gen_file = open('cg_input.csv', 'w')
+    c_gen_file.write('input_keywords\n')
+    c_gen_file.write(state_list[state_id] + ';climate')
+    c_gen_file.close()
+
+    # Start the Content Generator
+    os.system("python3 content-generator.py cg_input.csv")
+    sleep(3) # wait a bit for the content generator to do its thing
+    
+    # read data that Content Generator created into a list
+    cgen_output = open('output.csv', 'r')
+    content_list = []
+    for line in cgen_output:
+        content_list.append(line.split(';'))
+    cgen_output.close()
 
     # Take in data that was read from Content Generator
     temp_cont = ''
