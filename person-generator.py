@@ -15,20 +15,16 @@ state_index = 0            # Position in list for state selected
 address_list = []       # List of addresses that are generated
 content_lines = []       # data from Content Generator
 
-# Global list of state names in long form. This list have multiple
-# uses including in the GUI list to choose from and in the non-GUI
-# generation.
+# Global lists of state names in long  and short form.
 states_long = ['Alaska', 'Arizona', 'California', 'Colorado', 'Hawaii', 
             'Idaho', 'Montana', 'New Mexico', 'Nevada', 'Oregon', 'Utah', 
             'Washington', 'Wyoming']
 
-# Global list of states in their abbreviated form is fow use in
-# the non-GUI generation with comparison purposes.
 states_short = ['ak', 'az', 'ca', 'co', 'hi', 'id', 'mt', 
                 'nm', 'nv', 'or', 'ut', 'wa', 'wy']
 
 # Dictionary of states with key as their long name and the abbreviated form
-# as the value. Main use is in generate_addresses() function.
+# as the value. 
 state_filename_dict = {
     'Alaska': 'ak', 
     'Arizona': 'az', 
@@ -45,8 +41,6 @@ state_filename_dict = {
     'Wyoming': 'wy'
 }
 
-# length of the data in the csv files dependencies - 1 since reading will
-# start at "position 0"
 state_data_lengths = {
     "ak": 292362,
     "az": 3512857,
@@ -64,7 +58,7 @@ state_data_lengths = {
 }
 
 ##############################################################################
-# Function: save_lines
+# Function: save_lines()
 # Purpose:  This function saves the lines that match line indexes.
 ##############################################################################
 def save_lines(line_indexes):
@@ -188,10 +182,8 @@ def generate_content():
 
 ##############################################################################
 # Function: get_addr_list()
-# Purpose:  Generate the list of addresses and save them into a global
-#           variable display_list that will be pack()'d at the correct place 
-#           outside the function. If pack() were called in the function, it
-#           would create a new list underneath every time Generate is clicked.
+# Purpose:  Get the addresses and add them to the list of addresses displayed 
+#           in the GUI.
 ##############################################################################
 def get_addr_list():
     global state_index
