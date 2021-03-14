@@ -104,9 +104,10 @@ def generate_addresses():
     address_list = [] # reset list
     random.seed()
     count = 0
+    file_size = state_data_lengths[state_filename_dict[states_long[state_index]]]
     while(count < num_to_generate):
-        random_line = random.randrange(1, state_data_lengths[state_filename_dict[states_long[state_index]]])
-        if random_line not in line_indexes: # skip already existing indexes
+        random_line = random.randrange(1, file_size)
+        if random_line not in line_indexes:
             line_indexes.append(random_line)
             count = count + 1
 
@@ -142,30 +143,35 @@ def skip_GUI(input_argument):
 
 
 ##############################################################################
-# Function: generate_content()
-# Purpose:  Gets and injects content obtained by another microservice into
-#           the GUI.
+# Function: make_content_input():
+# Purpose:  Makes the input file to be used by Content Generator.
 ##############################################################################
-def generate_content():
-    global content_data # Data that is displayed about the state climate
-    global content_textbox
-
+def make_content_input():
     # make input file for Content Generator
     congen_infile = open('cg_input.csv', 'w')
     congen_infile.write('input_keywords\n')
     congen_infile.write(states_long[state_index] + ';climate')
     congen_infile.close()
 
-    # Start the Content Generator
-    os.system("python3 content-generator.py cg_input.csv")
-    sleep(2) # wait a bit for the content generator to do its thing
-    
+
+##############################################################################
+# Function: get_content_data():
+# Purpose:  Gets the content from the output file made by Content Generator.
+##############################################################################
+def get_content_data():
     cgen_output = open('output.csv', 'r')
     content_lines = []
     for line in cgen_output:
         content_lines.append(line.split(';'))
     cgen_output.close()
+    return content_lines
 
+
+##############################################################################
+# Function: format_content(content_lines):
+# Purpose:  Format line passed into separate ones to fit the content frame.
+##############################################################################
+def format_content(content_lines):
     # format text
     temp_cont = ''
     for i in range(len(content_lines[1][1])):
@@ -173,12 +179,28 @@ def generate_content():
             temp_cont += '\n'
         else:
             temp_cont += content_lines[1][1][i]
+    return temp_cont
 
-    content_data.set('Climate in ' + content_lines[1][0] + '\n' + temp_cont)
+
+##############################################################################
+# Function: generate_content()
+# Purpose:  Gets and injects content obtained by another microservice into
+#           the GUI.
+##############################################################################
+def generate_content():
+    make_content_input()
+    # Start the Content Generator
+    os.system("python3 content-generator.py cg_input.csv")
+    
+    content_lines = get_content_data()
+    formatted_cont = format_content(content_lines)
+
+    personGUI.content_data.set('Climate in ' + content_lines[1][0] + '\n' + formatted_cont)
     # check to see if content displayed is empty before insertng it to GUI
-    if content_data.get() != ' ':
-        content_textbox.delete('1.0', 'end')
-    content_textbox.insert(INSERT, content_data.get())
+    if personGUI.content_data.get() != ' ':
+        personGUI.content_text.delete('1.0', 'end')
+    personGUI.content_text.insert(INSERT, personGUI.content_data.get())
+
 
 ##############################################################################
 # Function: get_addr_list()
@@ -188,23 +210,79 @@ def generate_content():
 def get_addr_list():
     global state_index
     global num_to_generate
-    global display_list
-    global content_data     # Data that is displayed about the state climate
-    global content_textbox  # Text box to update
 
     # get the position of the state selected by user on GUI
-    state_index = int(state_listbox.curselection()[0])
-    num_to_generate = int(user_num_input.get())
+    state_index = int(personGUI.state_listbox.curselection()[0])
+    num_to_generate = int(personGUI.user_num_input.get())
 
     # Reset values
-    display_list.delete(0, 'end')
+    personGUI.display_list.delete(0, 'end')
     generate_addresses()
 
     # Update addresses
     for i in range(0, num_to_generate):
-        display_list.insert(i, address_list[i])
+        personGUI.display_list.insert(i, address_list[i])
 
     generate_content()
+
+
+class GUI:
+    def __init__(self):
+        self.window = Tk()
+        self.window.geometry("600x900")
+        self.state_listbox = Listbox()
+        self.display_list = Listbox()
+        self.user_num_input = Entry()
+        self.content_frame = Frame()
+        self.content_data = StringVar()
+        self.content_text = Text()
+
+    # start the GUI message
+    def build_GUI(self, message):
+        instruction = Label(text = message)
+        instruction.pack(side = 'top')
+
+    # make the state list box
+    def build_state_list(self, state_list):
+        self.state_listbox = Listbox(self.window, width = '70', height = '13')
+        # Insert states into the first listbox container
+        for index in range(0, 13):
+            self.state_listbox.insert(index, state_list[index])
+        self.state_listbox.pack()
+
+    # make the address list box
+    def build_address_list(self, address_list):
+        self.display_list = Listbox(self.window, width = '70', height = '15')
+        self.display_list.pack(side = 'top')
+
+    # make the entry box
+    def generate_entry(self):
+        prompt_warning = 'Number of addresses to generate.\n' +\
+                  'The larger the number, the longer it will take.'
+        num_input_ask = Label(text = prompt_warning)
+        num_input_ask.pack()
+        self.user_num_input = Entry(self.window, width = 20)
+        self.user_num_input.insert(0, '')
+        self.user_num_input.pack(padx = 5, pady = 5)
+
+    # make the generate button
+    def build_button(self):
+        bttn = Button(self.window, text = 'Generate', command = get_addr_list)
+        bttn.pack(side = 'top')
+
+    # make the content box
+    def build_content(self):
+        self.content_frame = Frame(self.window)
+        self.content_data = StringVar()
+        self.content_data.set(' ')
+        self.content_text = Text(self.content_frame, width = '70', height = '15')
+        self.content_text.insert(INSERT, self.content_data.get())
+        self.content_text.pack(side = 'right')
+        self.content_frame.pack()
+
+    # create the GUI
+    def mainloop(self):
+        self.window.mainloop()
 
 
 if __name__ == '__main__':
@@ -213,51 +291,15 @@ if __name__ == '__main__':
         skip_GUI(sys.argv[1])
 
     else:
-        # Create the GUI window and greet user. I used the following tutorial
-        # for learning how to make a GUI with Tkinter: https://coderslegacy.com/python/python-gui/python-tkinter-list-box/
-        # and https://realpython.com/python-gui-tkinter/
-        window = Tk()
-        window.geometry("600x900")
-        message = "Welcome to Person Generator\nPlease select which state you would like to generate addresses for.\n" + \
-                "Please make sure the state is highlighted otherwise nothing will be generated.\n"
-        greeting = Label(text=message)
-        greeting.pack(side = 'top')
-
-        # List of states
-        state_listbox = Listbox(window, width='70', height='13')
-        # List of addresses to be displayed
-        display_list = Listbox(window, width='70', height='15')
-        # Data from Content Generator
-        CFrame = Frame(window)
-        content_data = StringVar()
-        content_data.set(' ')
-        content_textbox = Text(CFrame, width='70', height='15')
-        content_textbox.insert(INSERT, content_data.get())
-
-        # Add scrollbar to Content data
-        scroll = Scrollbar(CFrame, orient=VERTICAL, command=content_textbox.yview)
-
-        # Insert states from states_long into the first listbox container
-        for i in range(0, 13):
-            state_listbox.insert(i, states_long[i])
-
-        state_listbox.pack()  # Create list of states
-        # Create entry area to enter the number of addresses to generate
-        num_input_ask = Label(text='Number of addresses to generate (max 250)')
-        num_input_ask.pack() 
-        user_num_input = Entry(window, width = 20)
-        user_num_input.insert(0, '') # Make sure entry area is empty
-        user_num_input.pack(padx = 5, pady = 5)
-
-        # Create button to press that calls get_addr_list() function
-        bttn = Button(window, text = "Generate", command = get_addr_list)
-        bttn.pack(side = 'top') # Display button at the bottom
-
-        display_list.pack(side = 'top')
-        content_textbox.pack(side=LEFT)
-        content_textbox.config(yscrollcommand=scroll.set) # scrollbar
-        scroll.pack(side=RIGHT)
-        CFrame.pack()
-
-        # Make GUI
-        window.mainloop()
+        message = "Welcome to Person Generator\n" + \
+                  "Please select which state you would like to generate addresses for.\n" + \
+                  "Please make sure the state is highlighted otherwise nothing will be generated.\n"
+        # start the GUI and its various components
+        personGUI = GUI()
+        personGUI.build_GUI(message)
+        personGUI.build_state_list(states_long)
+        personGUI.generate_entry()
+        personGUI.build_button()
+        personGUI.build_address_list(address_list)
+        personGUI.build_content()
+        personGUI.mainloop()
